@@ -1,0 +1,6 @@
+{
+  "name": "RCMC Support Chat Plugin",
+  "description": "An interactive full-stack AI support chat widget and WordPress plugin manager for Rangpur Community Medical College (RCMC) featuring real-time messaging, patient triage, and AI support responses.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
