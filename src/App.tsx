@@ -36,6 +36,11 @@ export default function App() {
   // Right-Panel state tabs
   const [rightPanelTab, setRightPanelTab] = useState<'operator' | 'wp-code'>('operator');
 
+  // Live URL target override for public WordPress embeds to avoid the 403 sandboxing container blocks
+  const [wpTargetUrl, setWpTargetUrl] = useState(() => {
+    return localStorage.getItem('rcmc_wp_target_url') || window.location.origin;
+  });
+
   // Mobile active layout tab (only active on responsive viewports <xl)
   const [activeMobileTab, setActiveMobileTab] = useState<'config' | 'preview' | 'operator'>('preview');
 
@@ -318,7 +323,7 @@ export default function App() {
   const htmlIframeCode = `<!-- START RCMC FLOATING SUPPORT FRAME -->
 <div id="rcmc-ai-support-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 999999; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
     <iframe 
-        src="${serverOriginUrl}?embed=true" 
+        src="${wpTargetUrl}?embed=true" 
         style="border: none; width: 400px; height: 600px; max-height: 85vh; max-width: 90vw;" 
         id="rcmc-ai-chat-frame"
         allow="camera; microphone; geolocation"
@@ -351,7 +356,7 @@ class RCMC_AI_Chat_Widget {
         ?>
         <div id="rcmc-ai-support-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 999999; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
             <iframe 
-                src="${serverOriginUrl}?embed=true" 
+                src="${wpTargetUrl}?embed=true" 
                 style="border: none; width: 380px; height: 600px; max-height: 85vh; max-width: 95vw;" 
                 id="rcmc-ai-chat-frame"
                 allow="camera; microphone; geolocation"
@@ -888,8 +893,58 @@ new RCMC_AI_Chat_Widget();`;
             {rightPanelTab === 'wp-code' && (
               <div className="flex-1 flex flex-col space-y-4">
                 
-                <div className="bg-emerald-950/20 border border-emerald-900/30 text-emerald-300 p-3 rounded-lg text-xs leading-relaxed">
-                  <strong>💡 WordPress Integration Manual:</strong> This plugin operates fully and hooks directly to your current container origin <code>{serverOriginUrl}</code>. Paste the codes below on your site to establish real-time AI capabilities instantly.
+                {/* 403 Alert & URL Target Configuration Panel */}
+                <div className="bg-neutral-900 border border-neutral-800 p-4 rounded-xl space-y-3.5">
+                  <div className="flex items-start gap-2.5">
+                    <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-extrabold text-amber-400 uppercase tracking-wide">
+                        Preventing "403 Forbidden" errors on Live Site
+                      </h4>
+                      <p className="text-[10.5px] text-neutral-400 leading-relaxed">
+                        The current active development URL (<code>{window.location.origin}</code>) is a secure, authenticated preview container sandbox. 
+                        Because of this, modern browsers block third-party iframe embed views on external domains, which prompts the Google 403 Forbidden warning.
+                      </p>
+                      <p className="text-[10.5px] text-neutral-400 leading-relaxed">
+                        To resolve this instantly, <strong>Share your workspace app</strong> or <strong>Deploy to Google Cloud Run</strong> via the settings menu in the upper-right corner. 
+                        Once you retrieve your unauthenticated <strong>Public Web App URL</strong>, paste it below to rebuild the WordPress plugin code using your public gateway:
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 pt-2 border-t border-neutral-800/60">
+                    <label className="block text-[9.5px] font-bold text-neutral-300 uppercase tracking-widest">
+                      Your Publicly Deployed Web Gateway URL
+                    </label>
+                    <div className="flex flex-col sm:flex-row gap-1.5">
+                      <input 
+                        type="url"
+                        value={wpTargetUrl}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setWpTargetUrl(val);
+                          localStorage.setItem('rcmc_wp_target_url', val);
+                        }}
+                        placeholder="https://your-public-app-url.run.app"
+                        className="flex-1 bg-neutral-950 px-3 py-2 rounded-lg border border-neutral-800 text-xs text-neutral-100 placeholder-neutral-600 focus:outline-hidden focus:border-emerald-500 font-mono min-h-[40px]"
+                      />
+                      <button 
+                        onClick={() => {
+                          setWpTargetUrl(window.location.origin);
+                          localStorage.setItem('rcmc_wp_target_url', window.location.origin);
+                        }}
+                        className="px-3 py-2 bg-neutral-800 hover:bg-neutral-750 text-[10px] font-bold text-neutral-300 rounded-lg border border-neutral-700 transition-colors cursor-pointer min-h-[40px]"
+                      >
+                        Reset URL
+                      </button>
+                    </div>
+                    {wpTargetUrl.includes('ais-') && (
+                      <p className="text-[9px] text-amber-400/90 flex items-center gap-1 bg-amber-950/20 border border-amber-900/30 p-2 rounded-lg mt-1 leading-snug">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        Warning: You are currently using a secure preview container URL. Remember to substitute this with your unblocked shared/production URL to bypass GFE 403 blocks.
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Embedded HTML Framework */}
